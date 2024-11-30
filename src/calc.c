@@ -24,6 +24,8 @@ Calc* buildCalc(Rocket *rocket, CalcParams params) {
   calc->X1 = params.X1;
   calc->Cx = params.Cx;
   calc->Nc = params.Nc;
+  calc->Csc = params.Csc;
+  calc->Css = params.Css;
 
   printf("vH: %f m/s, Velocidad de Apertura del Paracaidas\n", calc->vH);
   printf("Cs: %f m/s, Velocidad del Sonido\n", calc->Cs);
@@ -38,6 +40,8 @@ Calc* buildCalc(Rocket *rocket, CalcParams params) {
   printf("X1: %f, Factor de Reduccion de Fuerza de Apertura\n", calc->X1);
   printf("Cx: %f, Coeficiente de Fuerza de Apertura\n", calc->Cx);
   printf("Nc: %f, Numero de Cuerdas de Suspension\n", calc->Nc);
+  printf("Csc: %f N, Carga Segura de la Cuerda de Choque\n", calc->Csc);
+  printf("Css: %f N, Carga Segura de las Cuerdas de Suspension\n", calc->Css);
 
   return calc;
 }
@@ -60,6 +64,8 @@ void calcStrategy(Calc *calc) {
   calcBalisticParameter(calc);
   calcApertureForce(calc);
   calcSuspensionRopesApertureForce(calc);
+  calcShockRopeSecurityFactor(calc);
+  calcSuspensionRopeSecurityFactor(calc);
 
   return;
 }
@@ -69,7 +75,7 @@ void calcDryMass(Calc *calc) {
 
   calc->m = r->mC - r->mP;
 
-  printf("m: %f kg, Masa Seca\n", calc->m);
+  printf("(c) m: %f kg, Masa Seca\n", calc->m);
 
   return;
 }
@@ -79,7 +85,7 @@ void calcFinesse(Calc *calc) {
 
   calc->f = r->L / r->D;
 
-  printf("f: %f, Fineza del Cohete\n", calc->f);
+  printf("(c) f: %f, Fineza del Cohete\n", calc->f);
 
   return;
 }
@@ -87,7 +93,7 @@ void calcFinesse(Calc *calc) {
 void calcFormFactor(Calc *calc) {
   calc->SF = 1 + (60 / pow(calc->f, 3)) + (0.0025 * calc->f);
 
-  printf("SF: %f, Factor de Forma\n", calc->SF);
+  printf("(c) SF: %f, Factor de Forma\n", calc->SF);
 
   return;
 }
@@ -95,7 +101,7 @@ void calcFormFactor(Calc *calc) {
 void calcMachNumber(Calc *calc) {
   calc->M = calc->vH / calc->Cs;
 
-  printf("M: %f, Numero de Mach\n", calc->M);
+  printf("(c) M: %f, Numero de Mach\n", calc->M);
 
   return;
 }
@@ -103,7 +109,7 @@ void calcMachNumber(Calc *calc) {
 void calcAbsoluteApogee(Calc *calc) {
   calc->H = calc->h + calc->Alt;
 
-  printf("H: %f m, Apogeo Absoluto\n", calc->H);
+  printf("(c) H: %f m, Apogeo Absoluto\n", calc->H);
 
   return;
 }
@@ -113,7 +119,7 @@ void calcReynoldsNumber(Calc *calc) {
 
   calc->Re = (calc->pH * calc->vH * r->D) / calc->u0;
 
-  printf("Re: %f, Numero de Reynolds\n", calc->Re);
+  printf("(c) Re: %f, Numero de Reynolds\n", calc->Re);
 
   return;
 }
@@ -123,7 +129,7 @@ void calcFrictionCoefficient(Calc *calc) {
 
   calc->Cf = 0.45 * pow(log10(calc->Re * r->D), -2.58) * pow(1 + (0.144 * pow(calc->M, 2)), -0.65);
 
-  printf("Cf: %f, Coeficiente de Friccion\n", calc->Cf);
+  printf("(c) Cf: %f, Coeficiente de Friccion\n", calc->Cf);
 
   return;
 }
@@ -133,7 +139,7 @@ void calcDragForce(Calc *calc) {
 
   calc->Dfb = (0.5 * calc->pH) * M_PI * r->L * r->D * pow(calc->vH, 2) * calc->Cf * calc->SF;
 
-  printf("Dfb: %f N, Fuerza de Arrastre\n", calc->Dfb);
+  printf("(c) Dfb: %f N, Fuerza de Arrastre\n", calc->Dfb);
 
   return;
 }
@@ -141,7 +147,7 @@ void calcDragForce(Calc *calc) {
 void calcEffectiveDragSurface(Calc *calc) {
   calc->CdS0 = ((2 * calc->m * GRAVITY_ACCELERATION) + calc->Dfb) / (calc->pH * pow(calc->v1, 2));
 
-  printf("CdS0: %f m2, Superficie de Arrastre Efectiva\n", calc->CdS0);
+  printf("(c) CdS0: %f m2, Superficie de Arrastre Efectiva\n", calc->CdS0);
 
   return;
 }
@@ -149,7 +155,7 @@ void calcEffectiveDragSurface(Calc *calc) {
 void calcParachuteNominalSurface(Calc *calc) {
   calc->S0 = calc->CdS0 / calc->Cd;
 
-  printf("S0: %f m2, Superficie Nominal del Paracaidas\n", calc->S0);
+  printf("(c) S0: %f m2, Superficie Nominal del Paracaidas\n", calc->S0);
 
   return;
 }
@@ -157,7 +163,7 @@ void calcParachuteNominalSurface(Calc *calc) {
 void calcParachuteNominalDiameter(Calc *calc) {
   calc->D0 = sqrt((4 * calc->S0) / M_PI);
 
-  printf("D0: %f m, Diametro Nominal del Paracaidas\n", calc->D0);
+  printf("(c) D0: %f m, Diametro Nominal del Paracaidas\n", calc->D0);
 
   return;
 }
@@ -165,7 +171,7 @@ void calcParachuteNominalDiameter(Calc *calc) {
 void calcSuspesionRopeLength(Calc *calc) {
   calc->Ls = 2.25 * (calc->D0 + (calc->S * calc->D0));
 
-  printf("Ls: %f m, Longitud de las Cuerdas de Suspension\n", calc->Ls);
+  printf("(c) Ls: %f m, Longitud de las Cuerdas de Suspension\n", calc->Ls);
 
   return;
 }
@@ -175,7 +181,7 @@ void calcShockRopeLength(Calc *calc) {
 
   calc->Lcc = 2.5 * r->L;
 
-  printf("Lcc: %f m, Longitud de la Cuerda de Choque\n", calc->Lcc);
+  printf("(c) Lcc: %f m, Longitud de la Cuerda de Choque\n", calc->Lcc);
 
   return;
 }
@@ -183,7 +189,7 @@ void calcShockRopeLength(Calc *calc) {
 void calcParachuteInflateTime(Calc *calc) {
   calc->tf = (calc->n * calc->D0) / (0.85 * calc->vH);
 
-  printf("tf: %f s, Tiempo de Inflado del Paracaidas\n", calc->tf);
+  printf("(c) tf: %f s, Tiempo de Inflado del Paracaidas\n", calc->tf);
 
   return;
 }
@@ -191,7 +197,7 @@ void calcParachuteInflateTime(Calc *calc) {
 void calcBalisticParameter(Calc *calc) {
   calc->A = (2 * calc->m * GRAVITY_ACCELERATION) / (calc->CdS0 * calc->pH * GRAVITY_ACCELERATION * calc->vH * calc->tf);
 
-  printf("A: %f, Parametro Balistico\n", calc->A);
+  printf("(c) A: %f, Parametro Balistico\n", calc->A);
 
   return;
 }
@@ -199,7 +205,7 @@ void calcBalisticParameter(Calc *calc) {
 void calcApertureForce(Calc *calc) {
   calc->Fx = calc->CdS0 * (0.5 * calc->pH * pow(calc->vH, 2)) * calc->Cx * calc->X1;
 
-  printf("Fx: %f N, Fuerza de Apertura\n", calc->Fx);
+  printf("(c) Fx: %f N, Fuerza de Apertura\n", calc->Fx);
 
   return;
 }
@@ -207,7 +213,23 @@ void calcApertureForce(Calc *calc) {
 void calcSuspensionRopesApertureForce(Calc *calc) {
   calc->Fxc = calc->Fx / calc->Nc;
 
-  printf("Fxc: %f N, Fuerza de Apertura de las Cuerdas de Suspension\n", calc->Fxc);
+  printf("(c) Fxc: %f N, Fuerza de Apertura de las Cuerdas de Suspension\n", calc->Fxc);
+
+  return;
+}
+
+void calcShockRopeSecurityFactor(Calc *calc) {
+  calc->FS = calc->Csc / calc->Fx;
+
+  printf("(c) FS: %f, Factor de Seguridad de la Cuerda de Choque\n", calc->FS);
+
+  return;
+}
+
+void calcSuspensionRopeSecurityFactor(Calc *calc) {
+  calc->FSS = calc->Css / calc->Fxc;
+
+  printf("(c) FSS: %fs, Factor de Seguridad de las Cuerdas de Suspension\n", calc->FSS);
 
   return;
 }

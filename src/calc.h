@@ -99,6 +99,18 @@ struct Calc {
 
   // Fxc: fuerza de apertura de las cuerdas de suspension en N
   double Fxc;
+
+  // Csc: carga segura de la cuerda de choque en N
+  double Csc;
+
+  // FS: factor de seguridad de la cuerda de choque
+  double FS;
+
+  // Css; carga segura de las cuerdas de suspension en N
+  double Css;
+
+  // FSS: factor de seguridad de las cuerdas de suspension
+  double FSS;
 };
 
 typedef struct CalcParams CalcParams;
@@ -117,6 +129,8 @@ struct CalcParams {
   double X1;
   double Cx;
   double Nc;
+  double Csc;
+  double Css;
 };
 
 Calc* buildCalc(Rocket *rocket, CalcParams params);
@@ -140,5 +154,7 @@ void calcParachuteInflateTime(Calc *calc);
 void calcBalisticParameter(Calc *calc);
 void calcApertureForce(Calc *calc);
 void calcSuspensionRopesApertureForce(Calc *calc);
+void calcShockRopeSecurityFactor(Calc *calc);
+void calcSuspensionRopeSecurityFactor(Calc *calc);
 
 #endif

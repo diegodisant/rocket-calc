@@ -13,7 +13,7 @@
 ## Requirements
 
 1. GCC Installed.
-2. Introduce your parameters in `./data/rocket-data.csv` file.
+2. Introduce your parameters in `./data/rocket-data.csv` file. (TODO: implement CSV reading)
 
 ## Usage
 

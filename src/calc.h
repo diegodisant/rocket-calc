@@ -57,6 +57,48 @@ struct Calc {
 
   // v1: velocidad terminal del paracaidas en m/s
   double v1;
+
+  // Cd: coeficiente de propiedades del paracaidas
+  double Cd;
+
+  // S0: superficie nominal del paracaidas en m2
+  double S0;
+
+  // D0: diametro nominal del paracaidas en m
+  double D0;
+
+  // Ls: longitud de las cuerdas de supension suspencion en m
+  double Ls;
+
+  // S: superficie del paracaidas en m2
+  double S;
+
+  // Lcc: longitud de la cuerda de choque en m
+  double Lcc;
+
+  // n: factor de paracaidas (tabla de parametro balistico)
+  double n;
+
+  // tg: tiempo de inflado del paracaidas en ss
+  double tf;
+
+  // A: parametro balisitico
+  double A;
+
+  // X1: factor de reduccion de fuerza de apertura (tabla de parametro balistico)
+  double X1;
+
+  // C1: coeficiente de fuerza de apertura (tabla de propiedades de paracaidas)
+  double Cx;
+
+  // Fx: fuerza de apertura en N
+  double Fx;
+
+  // Nc: numero de cuerdas de suspension
+  double Nc;
+
+  // Fxc: fuerza de apertura de las cuerdas de suspension en N
+  double Fxc;
 };
 
 typedef struct CalcParams CalcParams;
@@ -69,6 +111,12 @@ struct CalcParams {
   double pH;
   double u0;
   double v1;
+  double Cd;
+  double S;
+  double n;
+  double X1;
+  double Cx;
+  double Nc;
 };
 
 Calc* buildCalc(Rocket *rocket, CalcParams params);
@@ -84,5 +132,13 @@ void calcReynoldsNumber(Calc *calc);
 void calcFrictionCoefficient(Calc *calc);
 void calcDragForce(Calc *calc);
 void calcEffectiveDragSurface(Calc *calc);
+void calcParachuteNominalSurface(Calc *calc);
+void calcParachuteNominalDiameter(Calc *calc);
+void calcSuspesionRopeLength(Calc *calc);
+void calcShockRopeLength(Calc *calc);
+void calcParachuteInflateTime(Calc *calc);
+void calcBalisticParameter(Calc *calc);
+void calcApertureForce(Calc *calc);
+void calcSuspensionRopesApertureForce(Calc *calc);
 
 #endif

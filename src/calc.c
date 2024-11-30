@@ -5,7 +5,7 @@
 #include "calc.h"
 
 #define M_PI 3.14159265358979323846
-#define GRAVITY_ACCELERATION 9.81
+#define GRAVITY_ACCELERATION 9.806
 
 Calc* buildCalc(Rocket *rocket, CalcParams params) {
   Calc *calc = (Calc *) malloc(sizeof(Calc));
@@ -18,6 +18,12 @@ Calc* buildCalc(Rocket *rocket, CalcParams params) {
   calc->pH = params.pH;
   calc->u0 = params.u0;
   calc->v1 = params.v1;
+  calc->Cd = params.Cd;
+  calc->S = params.S;
+  calc->n = params.n;
+  calc->X1 = params.X1;
+  calc->Cx = params.Cx;
+  calc->Nc = params.Nc;
 
   printf("vH: %f m/s, Velocidad de Apertura del Paracaidas\n", calc->vH);
   printf("Cs: %f m/s, Velocidad del Sonido\n", calc->Cs);
@@ -26,6 +32,12 @@ Calc* buildCalc(Rocket *rocket, CalcParams params) {
   printf("pH: %f kg/m3, Densidad del Aire en Apogeo Absoluto\n", calc->pH);
   printf("u0: %.15f Ns/m2, Velocidad del Aire\n", calc->u0);
   printf("v1: %f m/s, Velocidad Terminal del Paracaidas\n", calc->v1);
+  printf("Cd: %f, Coeficiente de Propiedades del Paracaidas\n", calc->Cd);
+  printf("S: %f m2, Superficie del Paracaidas\n", calc->S);
+  printf("n: %f, Factor de Paracaidas\n", calc->n);
+  printf("X1: %f, Factor de Reduccion de Fuerza de Apertura\n", calc->X1);
+  printf("Cx: %f, Coeficiente de Fuerza de Apertura\n", calc->Cx);
+  printf("Nc: %f, Numero de Cuerdas de Suspension\n", calc->Nc);
 
   return calc;
 }
@@ -40,6 +52,14 @@ void calcStrategy(Calc *calc) {
   calcFrictionCoefficient(calc);
   calcDragForce(calc);
   calcEffectiveDragSurface(calc);
+  calcParachuteNominalSurface(calc);
+  calcParachuteNominalDiameter(calc);
+  calcSuspesionRopeLength(calc);
+  calcShockRopeLength(calc);
+  calcParachuteInflateTime(calc);
+  calcBalisticParameter(calc);
+  calcApertureForce(calc);
+  calcSuspensionRopesApertureForce(calc);
 
   return;
 }
@@ -119,11 +139,75 @@ void calcDragForce(Calc *calc) {
 }
 
 void calcEffectiveDragSurface(Calc *calc) {
-  Rocket *r = calc->rocket;
-
   calc->CdS0 = ((2 * calc->m * GRAVITY_ACCELERATION) + calc->Dfb) / (calc->pH * pow(calc->v1, 2));
 
   printf("CdS0: %f m2, Superficie de Arrastre Efectiva\n", calc->CdS0);
+
+  return;
+}
+
+void calcParachuteNominalSurface(Calc *calc) {
+  calc->S0 = calc->CdS0 / calc->Cd;
+
+  printf("S0: %f m2, Superficie Nominal del Paracaidas\n", calc->S0);
+
+  return;
+}
+
+void calcParachuteNominalDiameter(Calc *calc) {
+  calc->D0 = sqrt((4 * calc->S0) / M_PI);
+
+  printf("D0: %f m, Diametro Nominal del Paracaidas\n", calc->D0);
+
+  return;
+}
+
+void calcSuspesionRopeLength(Calc *calc) {
+  calc->Ls = 2.25 * (calc->D0 + (calc->S * calc->D0));
+
+  printf("Ls: %f m, Longitud de las Cuerdas de Suspension\n", calc->Ls);
+
+  return;
+}
+
+void calcShockRopeLength(Calc *calc) {
+  Rocket *r = calc->rocket;
+
+  calc->Lcc = 2.5 * r->L;
+
+  printf("Lcc: %f m, Longitud de la Cuerda de Choque\n", calc->Lcc);
+
+  return;
+}
+
+void calcParachuteInflateTime(Calc *calc) {
+  calc->tf = (calc->n * calc->D0) / (0.85 * calc->vH);
+
+  printf("tf: %f s, Tiempo de Inflado del Paracaidas\n", calc->tf);
+
+  return;
+}
+
+void calcBalisticParameter(Calc *calc) {
+  calc->A = (2 * calc->m * GRAVITY_ACCELERATION) / (calc->CdS0 * calc->pH * GRAVITY_ACCELERATION * calc->vH * calc->tf);
+
+  printf("A: %f, Parametro Balistico\n", calc->A);
+
+  return;
+}
+
+void calcApertureForce(Calc *calc) {
+  calc->Fx = calc->CdS0 * (0.5 * calc->pH * pow(calc->vH, 2)) * calc->Cx * calc->X1;
+
+  printf("Fx: %f N, Fuerza de Apertura\n", calc->Fx);
+
+  return;
+}
+
+void calcSuspensionRopesApertureForce(Calc *calc) {
+  calc->Fxc = calc->Fx / calc->Nc;
+
+  printf("Fxc: %f N, Fuerza de Apertura de las Cuerdas de Suspension\n", calc->Fxc);
 
   return;
 }

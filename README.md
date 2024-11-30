@@ -1,4 +1,4 @@
-i# Rocket Calculator
+# Rocket Calculator
 
 > Calculator for Rocket Design parameters
 

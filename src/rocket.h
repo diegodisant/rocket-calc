@@ -10,6 +10,9 @@ struct Rocket {
   // D: diametro del cohete en m
   double D;
 
+  // DInt: diametro interno del cohete en m
+  double DInt;
+
   // mC: masa del cohete en kg (openrocket)
   double mC;
 
@@ -22,6 +25,7 @@ typedef struct RocketParams RocketParams;
 struct RocketParams {
   double L;
   double D;
+  double DInt;
   double mC;
   double mP;
 };

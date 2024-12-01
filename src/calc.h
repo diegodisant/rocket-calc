@@ -111,6 +111,60 @@ struct Calc {
 
   // FSS: factor de seguridad de las cuerdas de suspension
   double FSS;
+
+  // F: fuerza de apertura en N
+  double F;
+
+  // md: masa de despliegue en kg
+  double md;
+
+  // mcs: masa de cuerda de suspesnsion en kg
+  double mcs;
+
+  // mcc: masa de cuerda de choque en kg
+  double mcc;
+
+  // mco: masa del cono en kg
+  double mco;
+
+  // mp: masa del paracaidas en kg
+  double mp;
+
+  // Fratio: relacion de fuerza de despliegue/masa a desplegar
+  double Fratio;
+
+  // Fmax: Empuje maximo del motor en N
+  double Fmax;
+
+  // Wemp: esfuerzo maximo del retenedor de empuje en Mpa
+  double Wemp;
+
+  // Mr: reistencia del material en MPa
+  double Mr;
+
+  // Dremp: diametro del retenedor de empuje en mm
+  double Dremp;
+
+  // Thp: espesor del retenedor de empuje en mm
+  double Thp;
+
+  // Winf: esfuerzo maximo del retenedor inferior en Mpa
+  double Winf;
+
+  // mmsp: masa del motor sin propelente en kg
+  double mmsp;
+
+  // Thi: espesor del retenedor inferior en mm
+  double Thi;
+
+  // aparacaidas: aceleracion de apertura de paracaidas en m/s2
+  double aparacaidas;
+
+  // posi: relacion de poasson para el retenedor
+  double posi;
+
+  // RIFS: factor de seguridad para el retenedor inferior
+  double RIFS;
 };
 
 typedef struct CalcParams CalcParams;
@@ -131,6 +185,17 @@ struct CalcParams {
   double Nc;
   double Csc;
   double Css;
+  double mcs;
+  double mcc;
+  double mco;
+  double mp;
+  double Fmax;
+  double Mr;
+  double Dremp;
+  double mmsp;
+  double Thi;
+  double aparacaidas;
+  double posi;
 };
 
 Calc* buildCalc(Rocket *rocket, CalcParams params);
@@ -156,5 +221,12 @@ void calcApertureForce(Calc *calc);
 void calcSuspensionRopesApertureForce(Calc *calc);
 void calcShockRopeSecurityFactor(Calc *calc);
 void calcSuspensionRopeSecurityFactor(Calc *calc);
+void calcDeploymentForce(Calc *calc);
+void calcDeploymentMass(Calc *calc);
+void calcDeploymentForceMassRatio(Calc *calc);
+void calcPushRetainerEffort(Calc *calc);
+void calcPushRetainerThickness(Calc *calc);
+void calcInferiorRetainerEffort(Calc *calc);
+void calcInferiorRetainerSecurityFactor(Calc *calc);
 
 #endif

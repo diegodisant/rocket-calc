@@ -6,6 +6,8 @@
 
 #define M_PI 3.14159265358979323846
 #define GRAVITY_ACCELERATION 9.806
+#define FIXED_PRESSURE 89631.8
+#define SCALAR_FACTOR 1000
 
 Calc* buildCalc(Rocket *rocket, CalcParams params) {
   Calc *calc = (Calc *) malloc(sizeof(Calc));
@@ -26,6 +28,17 @@ Calc* buildCalc(Rocket *rocket, CalcParams params) {
   calc->Nc = params.Nc;
   calc->Csc = params.Csc;
   calc->Css = params.Css;
+  calc->mcs = params.mcs;
+  calc->mcc = params.mcc;
+  calc->mco = params.mco;
+  calc->mp = params.mp;
+  calc->Fmax = params.Fmax;
+  calc->Mr = params.Mr;
+  calc->Dremp = params.Dremp;
+  calc->mmsp = params.mmsp;
+  calc->Thi = params.Thi;
+  calc->aparacaidas = params.aparacaidas;
+  calc->posi = params.posi;
 
   printf("vH: %f m/s, Velocidad de Apertura del Paracaidas\n", calc->vH);
   printf("Cs: %f m/s, Velocidad del Sonido\n", calc->Cs);
@@ -42,6 +55,17 @@ Calc* buildCalc(Rocket *rocket, CalcParams params) {
   printf("Nc: %f, Numero de Cuerdas de Suspension\n", calc->Nc);
   printf("Csc: %f N, Carga Segura de la Cuerda de Choque\n", calc->Csc);
   printf("Css: %f N, Carga Segura de las Cuerdas de Suspension\n", calc->Css);
+  printf("mcs: %f kg, Masa de la Cuerda de Suspension\n", calc->mcs);
+  printf("mcc: %f kg, Masa de la Cuerda de Choque\n", calc->mcc);
+  printf("mco: %f kg, Masa del Cono\n", calc->mco);
+  printf("mp: %f kg, Masa del Paracaidas\n", calc->mp);
+  printf("Fmax: %f N, Empuje Maximo del Motor\n", calc->Fmax);
+  printf("Mr: %f MPa, Resistencia del Material\n", calc->Mr);
+  printf("Dremp: %f mm, Diametro del Retenedor de Empuje\n", calc->Dremp);
+  printf("mmsp: %f kg, Masa del Motor sin Propelente\n", calc->mmsp);
+  printf("Thi: %f mm, Espesor del Retenedor Inferior\n", calc->Thi);
+  printf("aparacaidas: %f m/s2, Aceleracion de Apertura de Paracaidas\n", calc->aparacaidas);
+  printf("posi: %f, Relacion de Poasson para el Retenedor\n", calc->posi);
 
   return calc;
 }
@@ -66,6 +90,13 @@ void calcStrategy(Calc *calc) {
   calcSuspensionRopesApertureForce(calc);
   calcShockRopeSecurityFactor(calc);
   calcSuspensionRopeSecurityFactor(calc);
+  calcDeploymentForce(calc);
+  calcDeploymentMass(calc);
+  calcDeploymentForceMassRatio(calc);
+  calcPushRetainerEffort(calc);
+  calcPushRetainerThickness(calc);
+  calcInferiorRetainerEffort(calc);
+  calcInferiorRetainerSecurityFactor(calc);
 
   return;
 }
@@ -230,6 +261,66 @@ void calcSuspensionRopeSecurityFactor(Calc *calc) {
   calc->FSS = calc->Css / calc->Fxc;
 
   printf("(c) FSS: %fs, Factor de Seguridad de las Cuerdas de Suspension\n", calc->FSS);
+
+  return;
+}
+
+void calcDeploymentForce(Calc *calc) {
+  Rocket *r = calc->rocket;
+
+  calc->F = FIXED_PRESSURE * (0.25 * M_PI * pow(r->DInt, 2));
+
+  printf("(c) F: %f N, Fuerza de Despliegue\n", calc->F);
+
+  return;
+}
+
+void calcDeploymentMass(Calc *calc) {
+  calc->md = (calc->mcs + calc->mcc + calc->mco + calc->mp);
+
+  printf("(c) md: %f kg, Masa de Despliegue\n", calc->md);
+
+  return;
+}
+
+void calcDeploymentForceMassRatio(Calc *calc) {
+  calc->Fratio = calc->F / (calc->md * GRAVITY_ACCELERATION);
+
+  printf("(c) Fratio: %f, Relacion de Fuerza de Despliegue/Masa a Desplegar\n", calc->Fratio);
+
+  return;
+}
+
+void calcPushRetainerEffort(Calc *calc) {
+  Rocket *r = calc->rocket;\
+
+  calc->Wemp = calc->Fmax / (0.25 * M_PI * pow(r->DInt * SCALAR_FACTOR, 2));
+
+  printf("(c) Wemp: %f Mpa, Esfuerzo Maximo del Retenedor de Empuje\n", calc->Wemp);
+
+  return;
+}
+
+void calcPushRetainerThickness(Calc *calc) {
+  calc->Thp = sqrt((3 * calc->Wemp) * (pow(calc->Dremp * SCALAR_FACTOR, 2)) / (4 * calc->Mr)) * 2;
+
+  printf("(c) Thp: %f mm, Espesor del Retenedor de Empuje\n", calc->Thp);
+
+  return;
+}
+
+void calcInferiorRetainerEffort(Calc *calc) {
+  calc->Winf = ((calc->mmsp * calc->aparacaidas) / pow(calc->Thi * SCALAR_FACTOR, 2))*(1 + calc->posi)*(0.485 * (log((calc->Dremp * SCALAR_FACTOR) / (calc->Thi * SCALAR_FACTOR))) + 0.52);
+
+  printf("(c) Winf: %f Mpa, Esfuerzo Maximo del Retenedor Inferior\n", calc->Winf);
+
+  return;
+}
+
+void calcInferiorRetainerSecurityFactor(Calc *calc) {
+  calc->RIFS = calc->Mr / calc->Winf;
+
+  printf("(c) RIFS: %f, Factor de Seguridad para el Retenedor Inferior\n", calc->RIFS);
 
   return;
 }
